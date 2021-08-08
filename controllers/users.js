@@ -5,7 +5,7 @@ const { Users } = require('../models/user-model')
 const SignUp= async (req , res) =>{
   try{
     const secret = process.env.SECRET
-    const {userDetails} = req.body
+    const { userDetails } = req.body
     const newUser = new Users(userDetails)
     const salt = await bcrypt.genSalt(10)
     newUser.password = await bcrypt.hash(newUser.password , salt)
@@ -26,7 +26,7 @@ const SignUp= async (req , res) =>{
 const SignIn = async (req , res) =>{
   try{
     const secret = process.env.SECRET
-    const {userDetails} = req.body
+    const  userDetails  = req.body
     const ourUser = await Users.findOne({username : userDetails.username})
     if(ourUser){
       const validPassword = await bcrypt.compare(userDetails.password, ourUser.password);
