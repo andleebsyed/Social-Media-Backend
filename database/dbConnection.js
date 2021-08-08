@@ -1,4 +1,3 @@
-// mongodb + srv://andleebsyed:<password>@travello.scnn9.mongodb.net/test
 const mongoose = require('mongoose')
 function DbConnection() {
 
