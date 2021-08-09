@@ -6,6 +6,7 @@ const fileupload = require("express-fileupload");
 const { DbConnection } = require("./database/dbConnection");
 const { userRoute } = require("./routes/userRoute/userRoute");
 const { postsRoute } = require("./routes/postsRoute");
+const { verifyToken } = require("./middlewares/verifyToken");
 const app = express();
 
 app.use(express.json());
@@ -24,5 +25,5 @@ app.get("/", (req, res) => {
 });
 
 app.use("/users", userRoute);
-app.use("/posts", postsRoute);
+app.use("/posts", verifyToken, postsRoute);
 app.listen(9000, () => console.log("server is up and running"));
