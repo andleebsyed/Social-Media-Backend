@@ -4,12 +4,17 @@ cloudinary.config({
   api_key: process.env.API_KEY,
   api_secret: process.env.API_SECRET,
 });
-const { Posts } = require("../models/posts-model");
-async function ReadPosts() {}
+const { Post } = require("../models/posts-model");
+async function FetchAllPosts() {
+  const { userId } = req.body;
+  const user = Users.findOne({ _id: userId });
+  const posts = Post.find({});
+}
 
 const CreatePost = async (req, res) => {
-  const fileData = req.files.photo;
-  const postText = req.body.text;
+  console.log(req.files);
+  const fileData = req.files.postImage;
+  const postText = req.body.postText;
   if (fileData) {
     await cloudinary.uploader.upload(
       fileData.tempFilePath,
@@ -27,7 +32,7 @@ const CreatePost = async (req, res) => {
             postText,
             postImage: imageLink,
           };
-          const newPost = new Posts(postContent);
+          const newPost = new Post(postContent);
           const savedPost = await newPost.save();
           res.json({
             status: true,
@@ -42,4 +47,4 @@ const CreatePost = async (req, res) => {
   }
 };
 
-module.exports = { ReadPosts, CreatePost };
+module.exports = { FetchAllPosts, CreatePost };

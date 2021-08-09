@@ -1,8 +1,8 @@
 const express = require("express");
-const { CreatePost, ReadPosts } = require("../controllers/posts");
+const { CreatePost, FetchAllPosts } = require("../controllers/posts");
 const postsRoute = express.Router();
 
 postsRoute.post("/upload", CreatePost);
-postsRoute.post("/read", ReadPosts);
+postsRoute.post("/read", FetchAllPosts);
 
 module.exports = { postsRoute };

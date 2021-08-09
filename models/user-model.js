@@ -22,6 +22,6 @@ const UserSchema = Schema({
   posts: [],
 });
 
-const Users = model("User", UserSchema);
+const User = model("User", UserSchema);
 
-module.exports = { Users };
+module.exports = { User };

@@ -11,6 +11,6 @@ const PostSchema = Schema({
   },
 });
 
-const Posts = model("Post", PostSchema);
+const Post = model("Post", PostSchema);
 
-module.exports = { Posts };
+module.exports = { Post };
