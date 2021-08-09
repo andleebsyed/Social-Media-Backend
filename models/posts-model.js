@@ -3,10 +3,14 @@ const { Schema, model } = mongoose;
 const PostSchema = Schema({
   postImage: {
     type: String,
-    required: true,
   },
   postText: {
     type: String,
+    required: true,
+  },
+  author: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
     required: true,
   },
 });
