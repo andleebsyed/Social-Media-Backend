@@ -20,6 +20,7 @@ const UserSchema = Schema({
     required: true,
   },
   posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+  likedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
 });
 
 const User = model("User", UserSchema);
