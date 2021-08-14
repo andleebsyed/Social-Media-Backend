@@ -20,11 +20,13 @@ const PostSchema = Schema({
     type: Date,
     required: true,
   },
-  likedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-    required: true,
-  },
+  likedBy: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+  ],
 });
 
 const Post = model("Post", PostSchema);
