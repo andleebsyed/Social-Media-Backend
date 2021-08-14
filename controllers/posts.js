@@ -9,11 +9,36 @@ const { User } = require("../models/user-model");
 async function FetchAllPosts(req, res) {
   try {
     const { userId } = req.body;
-    const ourUser = await User.findOne({ _id: userId }).populate("posts");
-    res.json({ status: true, message: "posts fetched successfully", ourUser });
+
+    const ourUser = await User.findOne({ _id: userId })
+      .populate("posts")
+      .populate("likedPosts");
+    const { posts, likedPosts, username, name } = ourUser;
+
+    const orderedPosts = posts.sort((a, b) => b.timestamp - a.timestamp);
+
+    const updatedPosts = orderedPosts.map((post) =>
+      likedPosts?.find(
+        (likedPost) => String(post._id) === String(likedPost._id)
+      ) !== undefined
+        ? { ...post._doc, liked: true }
+        : { ...post._doc, liked: false }
+    );
+    const userData = { username, name, updatedPosts };
+    res.json({
+      status: true,
+      message: "posts fetched successfully",
+      userData,
+      // ourUser,
+      // currentPosts,
+    });
   } catch (err) {
     console.log(err, err.message);
-    res.json({ status: false, message: "error occurred", errorDetail: err });
+    res.json({
+      status: false,
+      message: "error occurred",
+      errorDetail: err.message,
+    });
   }
 }
 
@@ -68,42 +93,35 @@ const CreatePost = async (req, res) => {
 const LikeInteraction = async (req, res) => {
   try {
     const { postId, action, userId } = req.body;
-    let modifier = action === "inc" ? 1 : -1;
-    // console.log({ action });
-    // console.log(postId, userId);
-    // console.log({ modifier });
-
-    const post = await Post.findOneAndUpdate(
-      { _id: postId },
-      { $inc: { likes: modifier } },
-      { new: true }
-    );
     let user = await User.findOne({ _id: userId });
+    let post = await Post.findOne({ _id: postId });
     if (action === "inc") {
+      post.likedBy.push(userId);
       user.likedPosts.push(postId);
-      const updatedUser = await user.save();
+      const { likedBy } = await post.save();
+      const { likedPosts } = await user.save();
       res.json({
         status: true,
         message: "liked post successfully",
-        post,
-        updatedUser,
+        likedBy,
+        likedPosts,
       });
     } else {
-      console.log("csme to dec");
-      const updatedLikedPosts = user.likedPosts.filter(
-        (post) => toString(post._id) !== toString(postId)
+      const updatedPosts = user.likedPosts.filter(
+        (id) => toString(id) !== toString(postId)
       );
-      console.log({ updatedLikedPosts });
-      const updatedUser = await User.findOneAndUpdate(
-        { _id: userId },
-        { likedPosts: updatedLikedPosts },
-        { new: true }
+      const updatedUsers = post.likedBy.filter(
+        (id) => toString(id) !== toString(userId)
       );
+      user.likedPosts = updatedPosts;
+      post.likedBy = updatedUsers;
+      const { likedBy } = await post.save();
+      const { likedPosts } = await user.save();
       res.json({
         status: true,
-        message: "liked post successfully",
-        post,
-        updatedUser,
+        message: "unliked post successfully",
+        likedBy,
+        likedPosts,
       });
     }
   } catch (error) {
