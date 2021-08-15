@@ -18,9 +18,7 @@ async function FetchAllPosts(req, res) {
     const orderedPosts = posts.sort((a, b) => b.timestamp - a.timestamp);
 
     const updatedPosts = orderedPosts.map((post) =>
-      likedPosts?.find(
-        (likedPost) => String(post._id) === String(likedPost._id)
-      ) !== undefined
+      likedPosts?.find((likedPost) => post._id.equals(likedPost._id))
         ? { ...post._doc, liked: true }
         : { ...post._doc, liked: false }
     );
@@ -107,14 +105,13 @@ const LikeInteraction = async (req, res) => {
         likedPosts,
       });
     } else {
-      const updatedPosts = user.likedPosts.filter(
-        (id) => toString(id) !== toString(postId)
-      );
-      const updatedUsers = post.likedBy.filter(
-        (id) => toString(id) !== toString(userId)
-      );
+      console.log("coming here or not");
+      const updatedPosts = user.likedPosts.filter((id) => !id.equals(postId));
+      const updatedUsers = post.likedBy.filter((id) => !id.equals(userId));
       user.likedPosts = updatedPosts;
       post.likedBy = updatedUsers;
+      console.log({ user });
+      console.log({ post });
       const { likedBy } = await post.save();
       const { likedPosts } = await user.save();
       res.json({
@@ -125,7 +122,7 @@ const LikeInteraction = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(500).json({
+    res.json({
       status: false,
       message: "likes were not updated",
       errorDetail: error.message,
