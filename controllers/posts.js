@@ -110,8 +110,6 @@ const LikeInteraction = async (req, res) => {
       const updatedUsers = post.likedBy.filter((id) => !id.equals(userId));
       user.likedPosts = updatedPosts;
       post.likedBy = updatedUsers;
-      console.log({ user });
-      console.log({ post });
       const { likedBy } = await post.save();
       const { likedPosts } = await user.save();
       res.json({
@@ -129,4 +127,56 @@ const LikeInteraction = async (req, res) => {
     });
   }
 };
-module.exports = { FetchAllPosts, CreatePost, LikeInteraction };
+
+const CommentPost = async (req, res) => {
+  try {
+    const { userId, content, postId } = req.body;
+    const commentData = { author: userId, content, postId };
+    const post = await Post.findOne({ _id: postId });
+    post.comments.push(commentData);
+    const response = await post.save();
+    res.json({ status: true, message: "comment added successfully", response });
+  } catch (error) {
+    console.log(
+      "error occurred while commenting on post",
+      error,
+      error?.message
+    );
+    res.json({
+      status: false,
+      message: "couldn't comment on the post",
+      errorDetail: error,
+    });
+  }
+};
+
+const RemoveComment = async (req, res) => {
+  try {
+    const { commentId, postId } = req.body;
+    const post = await Post.findOne({ _id: postId });
+    const updatedComments = post.comments.filter(
+      (comment) => !comment._id.equals(commentId)
+    );
+    post.comments = updatedComments;
+    const response = await post.save();
+    res.json({
+      status: true,
+      message: "comment deleted successfully",
+      response,
+    });
+  } catch (error) {
+    console.log("error occurred ", error, error?.message);
+    res.json({
+      staus: false,
+      message: "couldn't delete comment",
+      errroDetail: error?.message,
+    });
+  }
+};
+module.exports = {
+  FetchAllPosts,
+  CreatePost,
+  LikeInteraction,
+  CommentPost,
+  RemoveComment,
+};
