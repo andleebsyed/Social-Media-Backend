@@ -19,6 +19,9 @@ const UserSchema = Schema({
     type: String,
     required: true,
   },
+  avatar: {
+    type: String,
+  },
   posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
   likedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
 });
