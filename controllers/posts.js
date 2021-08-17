@@ -10,10 +10,36 @@ async function FetchAllPosts(req, res) {
   try {
     const { userId } = req.body;
 
-    const ourUser = await User.findOne({ _id: userId })
-      .populate("posts")
-      .populate("likedPosts");
-    const { posts, likedPosts, username, name } = ourUser;
+    // const ourUser = await User.findOne({ _id: userId })
+    //   .populate("posts")
+    //   .populate("likedPosts")
+    //   .populate({
+    //     path: "posts.comments.author",
+    //     select: "-email -password -__v",
+    //   });
+
+    const ourUser = await User.findOne({ _id: userId }).populate({
+      path: "posts likedPosts",
+      populate: { path: "posts.comments.author" },
+    });
+    // .populate("likedPosts")
+    // .populate({
+    //   path: "posts.comments.author",
+    //   select: "-email -password -__v",
+    // });
+    let { posts, likedPosts, username, name } = ourUser;
+    const ppp = posts.map(
+      async (post) =>
+        await post
+          .populate({
+            path: "comments.author",
+            populate: { path: "author" },
+            select: "-email -password -__v",
+          })
+          .execPopulate()
+    );
+    console.log({ ppp });
+    // console.log({ posts });
 
     const orderedPosts = posts.sort((a, b) => b.timestamp - a.timestamp);
 
@@ -135,6 +161,7 @@ const CommentPost = async (req, res) => {
     const post = await Post.findOne({ _id: postId });
     post.comments.push(commentData);
     const response = await post.save();
+
     res.json({ status: true, message: "comment added successfully", response });
   } catch (error) {
     console.log(
@@ -153,6 +180,7 @@ const CommentPost = async (req, res) => {
 const RemoveComment = async (req, res) => {
   try {
     const { commentId, postId } = req.body;
+    console.log({ commentId, postId });
     const post = await Post.findOne({ _id: postId });
     const updatedComments = post.comments.filter(
       (comment) => !comment._id.equals(commentId)
@@ -173,10 +201,29 @@ const RemoveComment = async (req, res) => {
     });
   }
 };
+const FetchComments = async (req, res) => {
+  try {
+    const { postId, userId } = req.body;
+    const post = await Post.findOne({ _id: postId }).populate({
+      path: "comments.author",
+      populate: { path: "author" },
+      select: "-email -password -__v",
+    });
+    const { comments } = post;
+    res.json({
+      status: true,
+      comments: post.comments,
+      userId,
+    });
+  } catch (error) {
+    res.json({ status: false, message: error?.message, errorDetail: error });
+  }
+};
 module.exports = {
   FetchAllPosts,
   CreatePost,
   LikeInteraction,
   CommentPost,
   RemoveComment,
+  FetchComments,
 };
