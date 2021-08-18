@@ -10,36 +10,32 @@ async function FetchAllPosts(req, res) {
   try {
     const { userId } = req.body;
 
-    // const ourUser = await User.findOne({ _id: userId })
-    //   .populate("posts")
-    //   .populate("likedPosts")
-    //   .populate({
-    //     path: "posts.comments.author",
-    //     select: "-email -password -__v",
-    //   });
+    const ourUser = await User.findOne({ _id: userId })
+      .populate("posts")
+      .populate("likedPosts");
 
-    const ourUser = await User.findOne({ _id: userId }).populate({
-      path: "posts likedPosts",
-      populate: { path: "posts.comments.author" },
-    });
+    // const ourUser = await User.findOne({ _id: userId }).populate({
+    //   path: "posts likedPosts",
+    //   populate: { path: "posts.comments.author" },
+    // });
     // .populate("likedPosts")
     // .populate({
     //   path: "posts.comments.author",
     //   select: "-email -password -__v",
     // });
     let { posts, likedPosts, username, name } = ourUser;
-    const ppp = posts.map(
-      async (post) =>
-        await post
-          .populate({
-            path: "comments.author",
-            populate: { path: "author" },
-            select: "-email -password -__v",
-          })
-          .execPopulate()
-    );
-    console.log({ ppp });
-    // console.log({ posts });
+    // const ppp = posts.map(
+    //   async (post) =>
+    //     await post
+    //       .populate({
+    //         path: "comments.author",
+    //         populate: { path: "author" },
+    //         select: "-email -password -__v",
+    //       })
+    //       .execPopulate()
+    // );
+    // console.log({ ppp });
+    // // console.log({ posts });
 
     const orderedPosts = posts.sort((a, b) => b.timestamp - a.timestamp);
 
