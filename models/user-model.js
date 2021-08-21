@@ -22,6 +22,14 @@ const UserSchema = Schema({
   avatar: {
     type: String,
   },
+  coverPic: {
+    type: String,
+  },
+  bio: {
+    type: String,
+  },
+  followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+  following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
   likedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
 });
