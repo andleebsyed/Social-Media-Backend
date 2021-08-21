@@ -165,6 +165,7 @@ async function UpdateUser(req, res) {
 }
 async function GetAllUsers(req, res) {
   try {
+    const { userId } = req.body;
     const users = await User.find({})
       .select("-__v -password -email")
       .populate(
@@ -179,4 +180,27 @@ async function GetAllUsers(req, res) {
     });
   }
 }
-module.exports = { SignUp, SignIn, UserDetails, UpdateUser, GetAllUsers };
+
+async function GetUser(req, res) {
+  try {
+    const { getUserId } = req.body;
+    const user = await User.findById(getUserId)
+      .select("-__v -password -email")
+      .populate("posts posts.comments followers following");
+    res.json({ status: true, message: "user fetched successfully", user });
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: "couldn't fetch user",
+      errorDetail: error?.message,
+    });
+  }
+}
+module.exports = {
+  SignUp,
+  SignIn,
+  UserDetails,
+  UpdateUser,
+  GetAllUsers,
+  GetUser,
+};
