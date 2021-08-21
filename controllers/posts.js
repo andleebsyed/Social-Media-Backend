@@ -10,33 +10,15 @@ async function FetchAllPosts(req, res) {
   try {
     const { userId } = req.body;
 
-    const ourUser = await User.findOne({ _id: userId })
-      .populate("posts")
-      .populate("likedPosts");
+    const ourUser = await User.findOne({ _id: userId }).populate(
+      "posts likedPosts "
+    );
+    const posts = await Post.find({}).populate(
+      "author comments.author likedBy",
+      "-__v -password"
+    );
 
-    // const ourUser = await User.findOne({ _id: userId }).populate({
-    //   path: "posts likedPosts",
-    //   populate: { path: "posts.comments.author" },
-    // });
-    // .populate("likedPosts")
-    // .populate({
-    //   path: "posts.comments.author",
-    //   select: "-email -password -__v",
-    // });
-    let { posts, likedPosts, username, name } = ourUser;
-    // const ppp = posts.map(
-    //   async (post) =>
-    //     await post
-    //       .populate({
-    //         path: "comments.author",
-    //         populate: { path: "author" },
-    //         select: "-email -password -__v",
-    //       })
-    //       .execPopulate()
-    // );
-    // console.log({ ppp });
-    // // console.log({ posts });
-
+    let { likedPosts, username, name } = ourUser;
     const orderedPosts = posts.sort((a, b) => b.timestamp - a.timestamp);
 
     const updatedPosts = orderedPosts.map((post) =>
@@ -44,13 +26,15 @@ async function FetchAllPosts(req, res) {
         ? { ...post._doc, liked: true }
         : { ...post._doc, liked: false }
     );
-    const userData = { username, name, updatedPosts };
+    const finalUserPosts = updatedPosts.filter((post) =>
+      post.author.equals(userId)
+    );
+
+    const userData = { username, name, finalUserPosts };
     res.json({
       status: true,
       message: "posts fetched successfully",
       userData,
-      // ourUser,
-      // currentPosts,
     });
   } catch (err) {
     console.log(err, err.message);
@@ -155,10 +139,28 @@ const CommentPost = async (req, res) => {
     const { userId, content, postId } = req.body;
     const commentData = { author: userId, content, postId };
     const post = await Post.findOne({ _id: postId });
+    console.log({ post });
     post.comments.push(commentData);
-    const response = await post.save();
 
-    res.json({ status: true, message: "comment added successfully", response });
+    const updatedPost = await post.save();
+    console.log({ updatedPost });
+    updatedPost
+      .populate({
+        path: "comments.author",
+        populate: { path: "author" },
+        select: "-email -password -__v",
+      })
+      .execPopulate();
+    const tempPost = await Post.findOne({ _id: postId }).populate({
+      path: "comments.author",
+      populate: { path: "author" },
+      select: "-email -password -__v",
+    });
+    res.json({
+      status: true,
+      message: "comment added successfully",
+      comments: tempPost.comments,
+    });
   } catch (error) {
     console.log(
       "error occurred while commenting on post",
@@ -183,10 +185,15 @@ const RemoveComment = async (req, res) => {
     );
     post.comments = updatedComments;
     const response = await post.save();
+    const tempPost = await Post.findOne({ _id: postId }).populate({
+      path: "comments.author",
+      populate: { path: "author" },
+      select: "-email -password -__v",
+    });
     res.json({
       status: true,
       message: "comment deleted successfully",
-      response,
+      comments: tempPost.comments,
     });
   } catch (error) {
     console.log("error occurred ", error, error?.message);
@@ -215,6 +222,22 @@ const FetchComments = async (req, res) => {
     res.json({ status: false, message: error?.message, errorDetail: error });
   }
 };
+async function GetPost(req, res) {
+  try {
+    const { postId } = req.body;
+    const post = await Post.findById(postId).populate(
+      "author likedBy comments comments.author",
+      "-__V -password -email"
+    );
+    res.json({ status: true, message: "post fetched successfully", post });
+  } catch (error) {
+    res.json({
+      status: false,
+      message: "couldn;t fetch post",
+      errorDetail: error?.message,
+    });
+  }
+}
 module.exports = {
   FetchAllPosts,
   CreatePost,
@@ -222,4 +245,5 @@ module.exports = {
   CommentPost,
   RemoveComment,
   FetchComments,
+  GetPost,
 };
