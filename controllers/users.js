@@ -110,56 +110,73 @@ async function UserDetails(req, res) {
 }
 
 async function UpdateUser(req, res) {
+  let msg = "";
   try {
-    const { userId, updateData } = req.body;
-    console.log({ updateData }, { userId });
-    const { coverPic, avatar, name, bio } = updateData;
+    const { userId, name, bio } = req.body;
     let user = await User.findById(userId);
-    user = { ...user, name: name, bio: bio };
-
-    if (coverPic) {
-      await cloudinary.uploader.upload(coverPic.tempFilePath, (err, result) => {
-        if (err) {
-          console.log("Error occurred while uploading coverPic");
-          return res.status(500).json({
-            status: false,
-            message: "image uploadation to cloudinary failed",
-            errorDetail: err,
-          });
-        } else {
-          const newCoverPic = result.secure_url;
-          user = { ...user, coverPic: newCoverPic };
-        }
-      });
-    }
-    if (avatar) {
-      await cloudinary.uploader.upload(avatar.tempFilePath, (err, result) => {
-        if (err) {
-          console.log("Error occurred while uploading avatar");
-          return res.status(500).json({
-            status: false,
-            message: "image uploadation to cloudinary failed",
-            errorDetail: err,
-          });
-        } else {
-          const newAvatar = result.secure_url;
-          user = { ...user, avatar: newAvatar };
-        }
-      });
+    user.name = name;
+    user.bio = bio;
+    if (req?.files) {
+      const { coverPic, avatar } = req?.files;
+      if (coverPic !== undefined) {
+        await cloudinary.uploader.upload(
+          coverPic.tempFilePath,
+          (err, result) => {
+            if (err) {
+              console.log("Error occurred while uploading coverPic");
+              msg = "failed to upload cover pic";
+            } else {
+              const newCoverPic = result.secure_url;
+              user.coverPic = newCoverPic;
+            }
+          }
+        );
+      }
+      if (avatar !== undefined) {
+        await cloudinary.uploader.upload(avatar.tempFilePath, (err, result) => {
+          if (err) {
+            console.log("Error occurred while uploading avatar");
+            msg = "failed to upload avatar";
+          } else {
+            const newAvatar = result.secure_url;
+            user.avatar = newAvatar;
+          }
+        });
+      }
     }
 
-    const response = await user.save();
+    let updatedUser = await user.save();
+    updatedUser = await updatedUser.populate("posts likedPosts");
+    updatedUser.password = undefined;
+    updatedUser.__v = undefined;
     return res.json({
       status: true,
       message: "user updated successfully",
-      updatedUser: response,
+      updatedUser,
     });
   } catch (error) {
+    console.log("catch block executed ", error.message);
     return res.json({
       status: false,
-      message: "couldn't update user",
+      message: msg,
       errorDetail: error?.message,
     });
   }
 }
-module.exports = { SignUp, SignIn, UserDetails, UpdateUser };
+async function GetAllUsers(req, res) {
+  try {
+    const users = await User.find({})
+      .select("-__v -password -email")
+      .populate(
+        "likedPosts posts followes following posts.author comments.author"
+      );
+    res.json({ status: true, mesage: "users fetced successfully", users });
+  } catch (error) {
+    res.json({
+      status: false,
+      message: "couldn't fetch users",
+      errorDetail: error?.message,
+    });
+  }
+}
+module.exports = { SignUp, SignIn, UserDetails, UpdateUser, GetAllUsers };
