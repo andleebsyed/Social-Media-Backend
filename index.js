@@ -24,6 +24,6 @@ app.get("/", (req, res) => {
   });
 });
 
-app.use("/users", userRoute);
+app.use("/user", userRoute);
 app.use("/posts", verifyToken, postsRoute);
 app.listen(9000, () => console.log("server is up and running"));
