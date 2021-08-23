@@ -196,6 +196,59 @@ async function GetUser(req, res) {
     });
   }
 }
+
+async function FollowNewUser(req, res) {
+  try {
+    const { userId, newUserId } = req.body;
+    console.log(userId, newUserId);
+    const user = await User.findById(userId);
+    const newUser = await User.findById(newUserId);
+    console.log(user.name, newUser.name);
+    user.following.push(newUserId);
+    newUser.followers.push(userId);
+    const followerUser = await user.save();
+    const followingUser = await newUser.save();
+    res.json({
+      status: true,
+      message: "followed user successfully",
+      data: { followerUser, followingUser },
+    });
+  } catch (error) {
+    res.json({
+      status: false,
+      message: "couldn't follow the user",
+      errorDetail: error?.message,
+    });
+  }
+}
+async function UnfollowUser(req, res) {
+  try {
+    const { userId, userToUnfollowId } = req.body;
+    const user = await User.findById(userId);
+    const userToUnfollow = await User.findById(userToUnfollowId);
+    console.log(userId, user.name, userToUnfollowId, userToUnfollow);
+    user.following = user.following.filter(
+      (following) => !following.equals(userToUnfollowId)
+    );
+    userToUnfollow.followers = userToUnfollow.followers.filter(
+      (follower) => !follower.equals(userId)
+    );
+
+    const updatedLoggedInUser = await user.save();
+    const updatedUnfollowedUser = await userToUnfollow.save();
+    res.json({
+      status: true,
+      message: "unfollowed user successfully",
+      data: { updatedLoggedInUser, updatedUnfollowedUser },
+    });
+  } catch (error) {
+    res.json({
+      status: false,
+      message: "couldn't unfollow the user",
+      errorDetail: error?.message,
+    });
+  }
+}
 module.exports = {
   SignUp,
   SignIn,
@@ -203,4 +256,6 @@ module.exports = {
   UpdateUser,
   GetAllUsers,
   GetUser,
+  FollowNewUser,
+  UnfollowUser,
 };

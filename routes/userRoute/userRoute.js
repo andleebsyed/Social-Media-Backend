@@ -6,6 +6,8 @@ const {
   UpdateUser,
   GetAllUsers,
   GetUser,
+  FollowNewUser,
+  UnfollowUser,
 } = require("../../controllers/users");
 const userRoute = express.Router();
 const { verifyToken } = require("../../middlewares/verifyToken");
@@ -15,5 +17,7 @@ userRoute.post("/", verifyToken, UserDetails);
 userRoute.post("/update", verifyToken, UpdateUser);
 userRoute.post("/allusers", verifyToken, GetAllUsers);
 userRoute.post("/getuser", verifyToken, GetUser);
+userRoute.post("/follow", verifyToken, FollowNewUser);
+userRoute.post("/unfollow", verifyToken, UnfollowUser);
 
 module.exports = { userRoute };
