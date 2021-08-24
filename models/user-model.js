@@ -32,6 +32,7 @@ const UserSchema = Schema({
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
   likedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+  notifications: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 });
 
 const User = model("User", UserSchema);
