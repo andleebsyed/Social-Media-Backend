@@ -10,31 +10,51 @@ async function FetchAllPosts(req, res) {
   try {
     const { userId } = req.body;
 
-    const ourUser = await User.findOne({ _id: userId }).populate(
-      "posts likedPosts "
-    );
-    const posts = await Post.find({}).populate(
-      "author comments.author likedBy",
-      "-__v -password"
-    );
+    const ourUser = await User.findOne({ _id: userId })
+      .populate({
+        path: "posts",
+        populate: {
+          path: "author comments.author",
+        },
+      })
+      .populate({
+        path: "likedPosts",
+        populate: {
+          path: "author",
+        },
+      })
+      .populate({
+        path: "following ",
+        populate: {
+          path: "posts",
+          populate: {
+            path: "author comments.author",
+          },
+        },
+      });
 
-    let { likedPosts, username, name } = ourUser;
+    let { likedPosts, following, posts, username, name } = ourUser;
+    let followingPosts = [];
+    following.forEach((followingUser) =>
+      followingUser.posts.forEach((post) => followingPosts.push(post))
+    );
+    posts = posts.concat(followingPosts);
     const orderedPosts = posts.sort((a, b) => b.timestamp - a.timestamp);
-
-    const updatedPosts = orderedPosts.map((post) =>
+    const finalUserPosts = orderedPosts.map((post) =>
       likedPosts?.find((likedPost) => post._id.equals(likedPost._id))
         ? { ...post._doc, liked: true }
         : { ...post._doc, liked: false }
     );
-    const finalUserPosts = updatedPosts.filter((post) =>
-      post.author.equals(userId)
-    );
-
     const userData = { username, name, finalUserPosts };
     res.json({
       status: true,
       message: "posts fetched successfully",
       userData,
+      ourUser,
+      // followingPosts,
+      // finalUserPosts,
+      // posts,
+      // // newArr,
     });
   } catch (err) {
     console.log(err, err.message);
@@ -226,7 +246,7 @@ async function GetPost(req, res) {
   try {
     const { postId } = req.body;
     const post = await Post.findById(postId).populate(
-      "author likedBy comments comments.author",
+      "author comments comments.author",
       "-__V -password -email"
     );
     res.json({ status: true, message: "post fetched successfully", post });
