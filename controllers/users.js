@@ -96,9 +96,14 @@ const SignIn = async (req, res) => {
 async function UserDetails(req, res) {
   try {
     const { userId } = req.body;
-    const user = await User.findById(userId, "-__v -password").populate(
-      "likedPosts posts"
-    );
+    const user = await User.findById(userId, "-__v -password")
+      .populate("likedPosts posts notifications")
+      .populate({
+        path: "posts",
+        populate: {
+          path: "author comments.author",
+        },
+      });
     res.json({ status: true, message: "user fetched successfully", user });
   } catch (error) {
     res.json({
@@ -186,7 +191,13 @@ async function GetUser(req, res) {
     const { getUserId } = req.body;
     const user = await User.findById(getUserId)
       .select("-__v -password -email")
-      .populate("posts posts.comments followers following");
+      .populate("posts posts.comments followers following")
+      .populate({
+        path: "posts",
+        populate: {
+          path: "author comments.author",
+        },
+      });
     res.json({ status: true, message: "user fetched successfully", user });
   } catch (error) {
     res.status(500).json({
@@ -206,6 +217,7 @@ async function FollowNewUser(req, res) {
     console.log(user.name, newUser.name);
     user.following.push(newUserId);
     newUser.followers.push(userId);
+    newUser.notifications.push(userId);
     const followerUser = await user.save();
     const followingUser = await newUser.save();
     res.json({
@@ -233,6 +245,9 @@ async function UnfollowUser(req, res) {
     userToUnfollow.followers = userToUnfollow.followers.filter(
       (follower) => !follower.equals(userId)
     );
+    userToUnfollow.notifications = userToUnfollow.notifications.filter(
+      (notification) => !notification.equals(userId)
+    );
 
     const updatedLoggedInUser = await user.save();
     const updatedUnfollowedUser = await userToUnfollow.save();
@@ -249,6 +264,24 @@ async function UnfollowUser(req, res) {
     });
   }
 }
+function FetchNotifications(req, res) {
+  try {
+    const { userId } = req.body;
+    const user = User.findById(userId).populate("notifications");
+    const notifications = user.notifications;
+    res.json({
+      status: true,
+      message: "notifications fetched successfully",
+      notifications,
+    });
+  } catch (error) {
+    res.json({
+      status: false,
+      message: "couldn't add notification",
+      errorDetail: error.message,
+    });
+  }
+}
 module.exports = {
   SignUp,
   SignIn,
@@ -258,4 +291,5 @@ module.exports = {
   GetUser,
   FollowNewUser,
   UnfollowUser,
+  FetchNotifications,
 };
