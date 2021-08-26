@@ -135,7 +135,6 @@ const LikeInteraction = async (req, res) => {
         likedPosts,
       });
     } else {
-      console.log("coming here or not");
       const updatedPosts = user.likedPosts.filter((id) => !id.equals(postId));
       const updatedUsers = post.likedBy.filter((id) => !id.equals(userId));
       user.likedPosts = updatedPosts;
@@ -163,11 +162,8 @@ const CommentPost = async (req, res) => {
     const { userId, content, postId } = req.body;
     const commentData = { author: userId, content, postId };
     const post = await Post.findOne({ _id: postId });
-    console.log({ post });
     post.comments.push(commentData);
-
     const updatedPost = await post.save();
-    console.log({ updatedPost });
     updatedPost
       .populate({
         path: "comments.author",
@@ -202,13 +198,12 @@ const CommentPost = async (req, res) => {
 const RemoveComment = async (req, res) => {
   try {
     const { commentId, postId } = req.body;
-    console.log({ commentId, postId });
     const post = await Post.findOne({ _id: postId });
     const updatedComments = post.comments.filter(
       (comment) => !comment._id.equals(commentId)
     );
     post.comments = updatedComments;
-    const response = await post.save();
+    await post.save();
     const tempPost = await Post.findOne({ _id: postId }).populate({
       path: "comments.author",
       populate: { path: "author" },
@@ -236,7 +231,6 @@ const FetchComments = async (req, res) => {
       populate: { path: "author" },
       select: "-email -password -__v",
     });
-    const { comments } = post;
     res.json({
       status: true,
       comments: post.comments,
@@ -257,7 +251,7 @@ async function GetPost(req, res) {
   } catch (error) {
     res.json({
       status: false,
-      message: "couldn;t fetch post",
+      message: "couldn't fetch post",
       errorDetail: error?.message,
     });
   }
@@ -283,7 +277,7 @@ async function FetchPostsByUser(req, res) {
   } catch (error) {
     res.json({
       status: false,
-      message: "couldn;t fetch posts of a user",
+      message: "couldn't fetch posts of a user",
       errorDetail: error?.message,
     });
   }
