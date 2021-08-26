@@ -8,6 +8,7 @@ const {
   FetchComments,
   getPost,
   GetPost,
+  FetchPostsByUser,
 } = require("../controllers/posts");
 const postsRoute = express.Router();
 
@@ -18,5 +19,6 @@ postsRoute.post("/addcomment", CommentPost);
 postsRoute.post("/removecomment", RemoveComment);
 postsRoute.post("/fetchcomments", FetchComments);
 postsRoute.post("/getpost", GetPost);
+postsRoute.post("/fetchpostsbyuser", FetchPostsByUser);
 
 module.exports = { postsRoute };
