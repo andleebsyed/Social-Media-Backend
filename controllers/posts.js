@@ -9,8 +9,14 @@ const { User } = require("../models/user-model");
 async function FetchAllPosts(req, res) {
   try {
     const { userId } = req.body;
-
+    const allPosts = await Post.find({}).populate({
+      path: "comments",
+      populate: {
+        path: "author",
+      },
+    });
     const ourUser = await User.findOne({ _id: userId })
+      .select("-__v -passowrd -email")
       .populate({
         path: "posts",
         populate: {
@@ -51,10 +57,7 @@ async function FetchAllPosts(req, res) {
       message: "posts fetched successfully",
       userData,
       ourUser,
-      // followingPosts,
-      // finalUserPosts,
-      // posts,
-      // // newArr,
+      allPosts,
     });
   } catch (err) {
     console.log(err, err.message);
@@ -68,7 +71,6 @@ async function FetchAllPosts(req, res) {
 
 const CreatePost = async (req, res) => {
   try {
-    console.log(req.files);
     const fileData = req?.files?.postImage;
     const postText = req.body?.postText;
     const { userId } = req.body;
@@ -101,7 +103,9 @@ const CreatePost = async (req, res) => {
     }
     const newPost = new Post(postContent);
     const savedPost = await newPost.save();
-    const ourUser = await User.findOne({ _id: userId });
+    const ourUser = await User.findOne({ _id: userId }).select(
+      "-__v -passowrd -email"
+    );
     const updatedPosts = [...ourUser.posts, savedPost._id];
     await User.findOneAndUpdate({ _id: userId }, { posts: updatedPosts });
     res.json({
@@ -258,6 +262,32 @@ async function GetPost(req, res) {
     });
   }
 }
+async function FetchPostsByUser(req, res) {
+  try {
+    const { getUserId } = req.body;
+    const response = await User.findById(getUserId)
+      .select("-__v -password -email")
+      .populate("posts")
+      .populate({
+        path: "posts",
+        populate: {
+          path: "author comments comments.author",
+        },
+      });
+    const { posts } = response;
+    res.json({
+      status: true,
+      message: "posts of user fetched successfully",
+      posts,
+    });
+  } catch (error) {
+    res.json({
+      status: false,
+      message: "couldn;t fetch posts of a user",
+      errorDetail: error?.message,
+    });
+  }
+}
 module.exports = {
   FetchAllPosts,
   CreatePost,
@@ -266,4 +296,5 @@ module.exports = {
   RemoveComment,
   FetchComments,
   GetPost,
+  FetchPostsByUser,
 };
