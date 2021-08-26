@@ -17,6 +17,7 @@ const SignUp = async (req, res) => {
         "https://res.cloudinary.com/andleebsyedcloud/image/upload/v1629091591/Image__1796-2017-01-27_kayqbq.jpg",
       coverPic:
         "https://res.cloudinary.com/andleebsyedcloud/image/upload/v1628684943/awyie73carhp4th6sczw.jpg",
+      bio: "I am a travello user",
     };
     const newUser = new User(userDetails);
     const salt = await bcrypt.genSalt(10);
@@ -96,7 +97,7 @@ const SignIn = async (req, res) => {
 async function UserDetails(req, res) {
   try {
     const { userId } = req.body;
-    const user = await User.findById(userId, "-__v -password")
+    const user = await User.findById(userId, "-__v -password -email")
       .populate("likedPosts posts notifications")
       .populate({
         path: "posts",
@@ -170,7 +171,6 @@ async function UpdateUser(req, res) {
 }
 async function GetAllUsers(req, res) {
   try {
-    const { userId } = req.body;
     const users = await User.find({})
       .select("-__v -password -email")
       .populate(
@@ -211,15 +211,15 @@ async function GetUser(req, res) {
 async function FollowNewUser(req, res) {
   try {
     const { userId, newUserId } = req.body;
-    console.log(userId, newUserId);
     const user = await User.findById(userId);
     const newUser = await User.findById(newUserId);
-    console.log(user.name, newUser.name);
     user.following.push(newUserId);
     newUser.followers.push(userId);
     newUser.notifications.push(userId);
-    const followerUser = await user.save();
-    const followingUser = await newUser.save();
+    let followerUser = await user.save();
+    let followingUser = await newUser.save();
+    followerUser.password = undefined;
+    followingUser.password = undefined;
     res.json({
       status: true,
       message: "followed user successfully",
@@ -238,7 +238,6 @@ async function UnfollowUser(req, res) {
     const { userId, userToUnfollowId } = req.body;
     const user = await User.findById(userId);
     const userToUnfollow = await User.findById(userToUnfollowId);
-    console.log(userId, user.name, userToUnfollowId, userToUnfollow);
     user.following = user.following.filter(
       (following) => !following.equals(userToUnfollowId)
     );
@@ -249,8 +248,10 @@ async function UnfollowUser(req, res) {
       (notification) => !notification.equals(userId)
     );
 
-    const updatedLoggedInUser = await user.save();
-    const updatedUnfollowedUser = await userToUnfollow.save();
+    let updatedLoggedInUser = await user.save();
+    let updatedUnfollowedUser = await userToUnfollow.save();
+    updatedLoggedInUser.password = undefined;
+    updatedUnfollowedUser.password = undefined;
     res.json({
       status: true,
       message: "unfollowed user successfully",
