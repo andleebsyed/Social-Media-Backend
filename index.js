@@ -7,6 +7,8 @@ const { DbConnection } = require("./database/dbConnection");
 const { userRoute } = require("./routes/userRoute/userRoute");
 const { postsRoute } = require("./routes/postsRoute");
 const { verifyToken } = require("./middlewares/verifyToken");
+const { errorHandler } = require("./middlewares/errorHandler");
+const { routeNotFound } = require("./middlewares/routeNotFound");
 const app = express();
 
 app.use(express.json());
@@ -26,4 +28,6 @@ app.get("/", (req, res) => {
 
 app.use("/user", userRoute);
 app.use("/posts", verifyToken, postsRoute);
+app.use(errorHandler);
+app.use(routeNotFound);
 app.listen(9000, () => console.log("server is up and running"));
