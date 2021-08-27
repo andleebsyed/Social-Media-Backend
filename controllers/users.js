@@ -151,8 +151,9 @@ async function UpdateUser(req, res) {
       }
     }
 
-    let updatedUser = await user.save();
-    updatedUser = await updatedUser.populate("posts likedPosts");
+    let updatedUser = await user
+      .save()
+      .then((t) => t.populate("posts").execPopulate());
     updatedUser.password = undefined;
     updatedUser.__v = undefined;
     return res.json({
