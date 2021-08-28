@@ -30,4 +30,6 @@ app.use("/user", userRoute);
 app.use("/posts", verifyToken, postsRoute);
 app.use(errorHandler);
 app.use(routeNotFound);
-app.listen(9000, () => console.log("server is up and running"));
+app.listen(process.env.PORT || 9000, () =>
+  console.log("server is up and running")
+);
