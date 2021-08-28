@@ -293,6 +293,33 @@ async function FetchPostsByUser(req, res) {
     });
   }
 }
+async function DeletePost(req, res) {
+  try {
+    const { userId, postId } = req.body;
+    const updatedPosts = await Post.deleteOne({ _id: postId });
+    let user = await User.findById(userId);
+    const newUserPosts = user.posts.filter(
+      (singlePostId) => singlePostId !== postId
+    );
+
+    user.posts = newUserPosts;
+    const updatedUser = await user.save();
+
+    res.json({
+      status: true,
+      message: "deleted post successfully",
+      updatedUser,
+      updatedPosts,
+    });
+  } catch (error) {
+    res.json({
+      status: false,
+      message: "failed to delete the post",
+      errorDetail: error?.message,
+    });
+  }
+}
+
 module.exports = {
   FetchAllPosts,
   CreatePost,
@@ -302,4 +329,5 @@ module.exports = {
   FetchComments,
   GetPost,
   FetchPostsByUser,
+  DeletePost,
 };

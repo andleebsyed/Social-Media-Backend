@@ -9,6 +9,7 @@ const {
   getPost,
   GetPost,
   FetchPostsByUser,
+  DeletePost,
 } = require("../controllers/posts");
 const postsRoute = express.Router();
 
@@ -20,5 +21,6 @@ postsRoute.post("/removecomment", RemoveComment);
 postsRoute.post("/fetchcomments", FetchComments);
 postsRoute.post("/getpost", GetPost);
 postsRoute.post("/fetchpostsbyuser", FetchPostsByUser);
+postsRoute.post("/deletepost", DeletePost);
 
 module.exports = { postsRoute };
