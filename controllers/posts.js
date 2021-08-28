@@ -102,7 +102,18 @@ const CreatePost = async (req, res) => {
       );
     }
     const newPost = new Post(postContent);
-    const savedPost = await newPost.save();
+    const savedPost = await newPost.save().then((t) =>
+      t
+
+        .populate("author")
+        .populate({
+          path: "posts",
+          populate: {
+            path: "comments comments.author",
+          },
+        })
+        .execPopulate()
+    );
     const ourUser = await User.findOne({ _id: userId }).select(
       "-__v -passowrd -email"
     );
