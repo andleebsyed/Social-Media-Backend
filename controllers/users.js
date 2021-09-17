@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const cloudinary = require("cloudinary").v2;
@@ -284,6 +285,30 @@ function FetchNotifications(req, res) {
     });
   }
 }
+
+const GuestAccess = async (req, res) => {
+  try {
+    const secret = process.env.SECRET;
+    const userId = mongoose.Types.ObjectId("61214370ac4bb90848967102");
+    const ourUser = await User.findById(userId);
+    const token = jwt.sign({ userId: ourUser._id }, secret, {
+      expiresIn: "24h",
+    });
+    res.json({
+      status: true,
+      allowUser: true,
+      message: "logged in successfully",
+      token,
+      userId: ourUser._id,
+    });
+  } catch (error) {
+    res.json({
+      status: false,
+      errorDetail: error,
+      errorMesssage: error.message,
+    });
+  }
+};
 module.exports = {
   SignUp,
   SignIn,
@@ -294,4 +319,5 @@ module.exports = {
   FollowNewUser,
   UnfollowUser,
   FetchNotifications,
+  GuestAccess,
 };

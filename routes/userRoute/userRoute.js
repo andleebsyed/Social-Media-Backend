@@ -9,11 +9,14 @@ const {
   FollowNewUser,
   UnfollowUser,
   FetchNotifications,
+  GuestAccess,
 } = require("../../controllers/users");
 const userRoute = express.Router();
 const { verifyToken } = require("../../middlewares/verifyToken");
 userRoute.post("/signin", SignIn);
 userRoute.post("/signup", SignUp);
+userRoute.post("/guest", GuestAccess);
+
 userRoute.post("/", verifyToken, UserDetails);
 userRoute.post("/update", verifyToken, UpdateUser);
 userRoute.post("/allusers", verifyToken, GetAllUsers);
