@@ -76,7 +76,7 @@ const CreatePost = async (req, res) => {
     const { userId } = req.body;
     let postContent = {
       author: userId,
-      postText,
+      postText: postText === null ? "" : postText,
       timestamp: new Date(),
       likes: 0,
     };

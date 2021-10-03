@@ -19,7 +19,6 @@ const PostSchema = Schema(
     },
     postText: {
       type: String,
-      required: true,
     },
     author: {
       type: mongoose.Schema.Types.ObjectId,
