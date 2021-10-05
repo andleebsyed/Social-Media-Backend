@@ -176,7 +176,7 @@ async function GetAllUsers(req, res) {
     const users = await User.find({})
       .select("-__v -password -email")
       .populate(
-        "likedPosts posts followes following posts.author comments.author"
+        "likedPosts posts followers following posts.author comments.author"
       );
     res.json({ status: true, mesage: "users fetced successfully", users });
   } catch (error) {
